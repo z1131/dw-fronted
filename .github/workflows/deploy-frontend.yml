@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  REGISTRY: crpi-16uyo5eg9cykcl2r.cn-hangzhou.personal.cr.aliyuncs.com
   NAMESPACE: deepwrite
   IMAGE_TAG: latest
 
@@ -42,6 +42,9 @@ jobs:
           script: |
             docker login -u ${{ secrets.ALIYUN_ACR_USERNAME }} -p ${{ secrets.ALIYUN_ACR_PASSWORD }} ${{ env.REGISTRY }}
             docker pull ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dw-fronted:${{ env.IMAGE_TAG }}
+            
+            export ACR_REGISTRY=${{ env.REGISTRY }}
+            export ACR_NAMESPACE=${{ env.NAMESPACE }}
             
             cd /opt/deepwrite
             # Update the nginx service with the new image
