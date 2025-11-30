@@ -1,0 +1,49 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  NAMESPACE: deepwrite
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ALIYUN_ACR_USERNAME }}
+          password: ${{ secrets.ALIYUN_ACR_PASSWORD }}
+      
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dw-fronted:${{ env.IMAGE_TAG }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to ECS A
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST_A }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker login -u ${{ secrets.ALIYUN_ACR_USERNAME }} -p ${{ secrets.ALIYUN_ACR_PASSWORD }} ${{ env.REGISTRY }}
+            docker pull ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dw-fronted:${{ env.IMAGE_TAG }}
+            
+            cd /opt/deepwrite
+            # Update the nginx service with the new image
+            docker-compose -f docker-compose-ecs-a.yml up -d --no-deps dw-nginx
+            docker image prune -f

@@ -79,7 +79,6 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
   if (!task.topicMode) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-gray-50 space-y-8 p-10 animate-fade-in">
-        <h2 className="text-3xl font-bold text-gray-800">开始您的论文选题之旅</h2>
         <div className="flex gap-6">
           <div 
             onClick={() => handleModeSelect('existing')}
@@ -89,7 +88,7 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
               <Upload size={32} />
             </div>
             <h3 className="text-xl font-bold mb-2">已选题</h3>
-            <p className="text-gray-500 text-sm">上传开题报告或输入您的想法，AI 将为您分析并提供建议。</p>
+            <p className="text-gray-500 text-sm">上传开题报告或输入您的想法</p>
           </div>
 
           <div 
@@ -100,7 +99,7 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
               <Lightbulb size={32} />
             </div>
             <h3 className="text-xl font-bold mb-2">开始选题</h3>
-            <p className="text-gray-500 text-sm">输入专业和研究方向，AI 将为您构建结构化的研究选题。</p>
+            <p className="text-gray-500 text-sm">构建研究题目</p>
           </div>
         </div>
       </div>
