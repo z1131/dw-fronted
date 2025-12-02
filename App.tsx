@@ -6,6 +6,7 @@ import { OutlineView } from './views/OutlineView';
 import { RefinementView } from './views/RefinementView';
 import { PaperTask, WorkflowStep } from './types';
 import { Check, Loader2, ArrowLeft } from 'lucide-react';
+import { projectService } from './services/projectService';
 
 const INITIAL_TASK: PaperTask = {
   id: 'task-1',
@@ -31,16 +32,22 @@ const App: React.FC = () => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
   };
 
-  const addTask = () => {
-    const newTask: PaperTask = {
-      id: `task-${Date.now()}`,
-      title: '新建未命名论文',
-      currentStep: WorkflowStep.TOPIC_SELECTION,
-      outline: [],
-      images: []
-    };
-    setTasks([...tasks, newTask]);
-    setActiveTaskId(newTask.id);
+  const addTask = async () => {
+    try {
+      const projectDTO = await projectService.createProject();
+      const newTask: PaperTask = {
+        id: projectDTO.id.toString(),
+        title: projectDTO.title || '新建未命名论文',
+        currentStep: WorkflowStep.TOPIC_SELECTION,
+        outline: [],
+        images: []
+      };
+      setTasks([...tasks, newTask]);
+      setActiveTaskId(newTask.id);
+    } catch (error) {
+      console.error("Failed to create project", error);
+      alert("创建项目失败，请检查网络或后端服务");
+    }
   };
 
   const handleStepClick = (step: WorkflowStep) => {
