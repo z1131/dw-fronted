@@ -48,5 +48,5 @@ jobs:
             
             cd /opt/deepwrite
             # Update the nginx service with the new image
-            docker-compose -f docker-compose-ecs-a.yml up -d --no-deps dw-nginx
+            docker compose -f docker-compose-ecs-a.yml up -d --no-deps dw-nginx
             docker image prune -f
