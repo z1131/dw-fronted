@@ -21,6 +21,8 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
 
   // Form State for "Existing"
   const [existingPrompt, setExistingPrompt] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleModeSelect = (mode: 'existing' | 'new') => {
     onUpdateTask({ topicMode: mode });
@@ -219,9 +221,6 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
   }
 
   // Existing Topic Flow
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
