@@ -56,15 +56,7 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
     }
   };
 
-  const handleAnalyzeExisting = async () => {
-    // TODO: Implement backend analysis for existing docs if needed
-    // For now, we might keep it client-side or add a new backend endpoint
-    // But the plan was to focus on Generation. 
-    // Let's leave a placeholder or use a simple mock if backend doesn't support it yet.
-    // The current backend TopicService only has generate and confirm.
-    // We will skip this for now or implement a basic version.
-    alert("文档分析功能后端接口尚未对接 (Pending Backend Implementation)");
-  };
+
 
   const selectTopic = (topic: Topic) => {
     onUpdateTask({ selectedTopic: topic });
@@ -227,15 +219,82 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
   }
 
   // Existing Topic Flow
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleAnalyzeExisting = async () => {
+    if (!selectedFile && !existingPrompt) {
+      alert("请上传文件或输入内容");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const projectId = parseInt(task.id);
+      if (isNaN(projectId)) {
+        alert("错误：无效的项目ID。请刷新页面重试。");
+        return;
+      }
+
+      // If we have a file, upload and analyze
+      if (selectedFile) {
+        const result = await topicService.analyzeTopic(projectId, selectedFile, existingPrompt || "Untitled Topic");
+        // Result is JSON object from AI
+        // Format: { feasibility: string, innovation: string, suggestions: string[], refined_topic: string }
+
+        let formattedResult = `**可行性**: ${result.feasibility}\n\n**创新性**: ${result.innovation}\n\n**建议**:\n${result.suggestions.map((s: string) => `- ${s}`).join('\n')}`;
+        if (result.refined_topic) {
+          formattedResult += `\n\n**优化后的题目**: ${result.refined_topic}`;
+          // Optionally auto-update title?
+        }
+        setAnalysisResult(formattedResult);
+      } else {
+        // Text only analysis (Not implemented in backend yet, strictly speaking, but we can add it later)
+        alert("目前仅支持文件上传分析。请上传您的开题报告。");
+      }
+
+    } catch (e) {
+      console.error(e);
+      alert("分析失败，请检查网络或重试。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-8 space-y-6 animate-fade-in">
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 className="text-lg font-bold mb-4 text-gray-800">已有开题报告</h3>
 
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 cursor-pointer transition-colors mb-6 group">
-          <Upload size={32} className="mb-2 group-hover:text-blue-500 transition-colors" />
-          <span className="text-sm font-medium">点击上传开题报告 (PDF/Word)</span>
-          <input type="file" className="hidden" />
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center transition-colors mb-6 group cursor-pointer ${selectedFile ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'}`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {selectedFile ? (
+            <>
+              <FileCheck size={32} className="mb-2 text-blue-500" />
+              <span className="text-sm font-medium text-blue-700">{selectedFile.name}</span>
+              <span className="text-xs text-gray-500 mt-1">点击更换文件</span>
+            </>
+          ) : (
+            <>
+              <Upload size={32} className="mb-2 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <span className="text-sm font-medium text-gray-500">点击上传开题报告 (PDF/Word)</span>
+            </>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".pdf,.doc,.docx,.txt"
+            onChange={handleFileChange}
+          />
         </div>
 
         <label className="block text-sm font-medium text-gray-700 mb-1">或者手动输入提示词/概述</label>
@@ -249,10 +308,11 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
         <div className="mt-4 flex justify-end">
           <button
             onClick={handleAnalyzeExisting}
-            disabled={loading || !existingPrompt}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+            disabled={loading || (!selectedFile && !existingPrompt)}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium flex items-center gap-2"
           >
             {loading ? '分析中...' : '分析选题'}
+            {!loading && <Lightbulb size={16} />}
           </button>
         </div>
       </div>
