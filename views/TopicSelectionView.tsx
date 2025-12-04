@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { PaperTask, Topic } from '../types';
-import { Upload, Search, ArrowRight, Lightbulb, FileCheck, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
+import { Upload, Search, ArrowRight, Lightbulb, FileCheck, Sparkles, FileText, CheckCircle2, Loader2 } from 'lucide-react';
 import { topicService } from '../services/topicService';
 
 interface TopicSelectionViewProps {
@@ -228,12 +228,8 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                   disabled={loading || !major || !direction}
                   className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-bold flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg"
                 >
-                  {loading ? <span className="animate-pulse">思考中...</span> : (
-                    <>
-                      <Sparkles size={18} />
-                      开始生成选题
-                    </>
-                  )}
+                  <Sparkles size={18} />
+                  开始生成选题
                 </button>
               </div>
             ) : (
@@ -277,12 +273,8 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                   disabled={loading || (!selectedFile && !existingPrompt)}
                   className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-bold flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg"
                 >
-                  {loading ? <span className="animate-pulse">分析中...</span> : (
-                    <>
-                      <Lightbulb size={18} />
-                      开始分析
-                    </>
-                  )}
+                  <Lightbulb size={18} />
+                  开始分析
                 </button>
               </div>
             )}
@@ -293,76 +285,83 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
       {/* Right Panel: Results */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 relative">
         <div className="flex-1 overflow-y-auto p-8">
-          {activeTab === 'generate' ? (
-            generatedTopics.length > 0 ? (
-              <div className="max-w-5xl mx-auto">
-                <h3 className="text-lg font-bold text-gray-700 mb-6 flex items-center gap-2">
-                  <Sparkles className="text-blue-500" size={20} />
-                  生成的候选题目
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 pb-24">
-                  {generatedTopics.map(topic => {
-                    const isSelected = task.selectedTopic?.id === topic.id;
-                    return (
-                      <div
-                        key={topic.id}
-                        onClick={() => openTopicDetail(topic)}
-                        className={`
+          {loading ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-6 animate-fade-in">
+              <Loader2 size={48} className="animate-spin text-blue-600" />
+              <p className="text-lg font-medium animate-pulse">正在思考中...</p>
+            </div>
+          ) : (
+            activeTab === 'generate' ? (
+              generatedTopics.length > 0 ? (
+                <div className="max-w-5xl mx-auto">
+                  <h3 className="text-lg font-bold text-gray-700 mb-6 flex items-center gap-2">
+                    <Sparkles className="text-blue-500" size={20} />
+                    生成的候选题目
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 pb-24">
+                    {generatedTopics.map(topic => {
+                      const isSelected = task.selectedTopic?.id === topic.id;
+                      return (
+                        <div
+                          key={topic.id}
+                          onClick={() => openTopicDetail(topic)}
+                          className={`
                                             relative bg-white p-6 rounded-xl border-2 transition-all cursor-pointer group
                                             ${isSelected
-                            ? 'border-blue-500 shadow-lg ring-4 ring-blue-50'
-                            : 'border-transparent shadow-sm hover:shadow-md hover:border-blue-200'}
+                              ? 'border-blue-500 shadow-lg ring-4 ring-blue-50'
+                              : 'border-transparent shadow-sm hover:shadow-md hover:border-blue-200'}
                                         `}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-4 right-4 text-blue-600">
-                            <CheckCircle2 size={24} fill="currentColor" className="text-white" />
+                        >
+                          {isSelected && (
+                            <div className="absolute top-4 right-4 text-blue-600">
+                              <CheckCircle2 size={24} fill="currentColor" className="text-white" />
+                            </div>
+                          )}
+                          <h4 className={`font-bold text-lg mb-3 pr-8 ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                            {topic.title}
+                          </h4>
+                          <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
+                            {topic.overview}
+                          </p>
+                          <div className="mt-4 pt-4 border-t border-gray-100 text-blue-500 text-sm font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            查看详情 <ArrowRight size={14} />
                           </div>
-                        )}
-                        <h4 className={`font-bold text-lg mb-3 pr-8 ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
-                          {topic.title}
-                        </h4>
-                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
-                          {topic.overview}
-                        </p>
-                        <div className="mt-4 pt-4 border-t border-gray-100 text-blue-500 text-sm font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          查看详情 <ArrowRight size={14} />
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Sparkles size={40} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-medium">在左侧输入信息并点击生成</p>
+                </div>
+              )
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Sparkles size={40} className="text-gray-300" />
-                </div>
-                <p className="text-lg font-medium">在左侧输入信息并点击生成</p>
-              </div>
-            )
-          ) : (
-            analysisResult ? (
-              <div className="max-w-4xl mx-auto pb-24">
-                <div className="bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-500 animate-slide-in-up">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <FileText className="text-purple-600" size={24} />
-                    分析报告
-                  </h3>
-                  <div className="prose prose-slate max-w-none">
-                    <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                      <ReactMarkdown>{analysisResult}</ReactMarkdown>
+              analysisResult ? (
+                <div className="max-w-4xl mx-auto pb-24">
+                  <div className="bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-500 animate-slide-in-up">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                      <FileText className="text-purple-600" size={24} />
+                      分析报告
+                    </h3>
+                    <div className="prose prose-slate max-w-none">
+                      <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                        <ReactMarkdown>{analysisResult}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Upload size={40} className="text-gray-300" />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Upload size={40} className="text-gray-300" />
+                  </div>
+                  <p className="text-lg font-medium">上传文件以开始分析</p>
                 </div>
-                <p className="text-lg font-medium">上传文件以开始分析</p>
-              </div>
+              )
             )
           )}
         </div>
@@ -431,6 +430,6 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
           </div>
         </div>
       )}
-    </div >
+    </div>
   );
 };
