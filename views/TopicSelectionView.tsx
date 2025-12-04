@@ -136,7 +136,7 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
     }
   };
 
-  return (
+
   const [viewingTopic, setViewingTopic] = useState<Topic | null>(null);
 
   const openTopicDetail = (topic: Topic) => {
