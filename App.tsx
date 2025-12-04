@@ -15,6 +15,39 @@ const App: React.FC = () => {
 
   const activeTask = tasks.find(t => t.id === activeTaskId);
 
+  // Helper function to map project status to workflow step
+  const mapStatusToStep = (status: string): WorkflowStep => {
+    if (status === 'INIT' || status === 'TOPIC_GENERATING') return WorkflowStep.TOPIC_SELECTION;
+    if (status === 'TOPIC_SELECTED') return WorkflowStep.OUTLINE_OVERVIEW;
+    // Add more mappings as needed
+    return WorkflowStep.TOPIC_SELECTION; // Default
+  };
+
+  // Load projects on mount
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const projects = await projectService.listProjects(1001); // Default user
+        const loadedTasks: PaperTask[] = projects.map(p => ({
+          id: p.id.toString(),
+          title: p.title || '未命名论文',
+          currentStep: mapStatusToStep(p.status),
+          outline: [],
+          images: []
+        }));
+        setTasks(loadedTasks);
+
+        // Auto-select the most recent project
+        if (loadedTasks.length > 0) {
+          setActiveTaskId(loadedTasks[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+      }
+    };
+    loadProjects();
+  }, []);
+
   useEffect(() => {
     // When switching tasks, revert to overview mode
     setIsOverviewMode(true);
