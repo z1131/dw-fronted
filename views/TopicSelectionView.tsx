@@ -137,7 +137,25 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
   };
 
   return (
-    <div className="flex h-full bg-[#f8fafc] animate-fade-in overflow-hidden">
+  const [viewingTopic, setViewingTopic] = useState<Topic | null>(null);
+
+  const openTopicDetail = (topic: Topic) => {
+    setViewingTopic(topic);
+  };
+
+  const closeTopicDetail = () => {
+    setViewingTopic(null);
+  };
+
+  const confirmTopicFromModal = () => {
+    if (viewingTopic) {
+      selectTopic(viewingTopic);
+      setViewingTopic(null);
+    }
+  };
+
+  return (
+    <div className="flex h-full bg-[#f8fafc] animate-fade-in overflow-hidden relative">
       {/* Left Panel: Configuration */}
       <div className="w-[400px] bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-10">
         <div className="p-6 border-b border-gray-100">
@@ -288,7 +306,7 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                     return (
                       <div
                         key={topic.id}
-                        onClick={() => selectTopic(topic)}
+                        onClick={() => openTopicDetail(topic)}
                         className={`
                                             relative bg-white p-6 rounded-xl border-2 transition-all cursor-pointer group
                                             ${isSelected
@@ -304,9 +322,12 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                         <h4 className={`font-bold text-lg mb-3 pr-8 ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
                           {topic.title}
                         </h4>
-                        <p className="text-gray-600 text-sm leading-relaxed">
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
                           {topic.overview}
                         </p>
+                        <div className="mt-4 pt-4 border-t border-gray-100 text-blue-500 text-sm font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          查看详情 <ArrowRight size={14} />
+                        </div>
                       </div>
                     );
                   })}
@@ -331,7 +352,8 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                   <div className="prose prose-slate max-w-none">
                     <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
                       <ReactMarkdown>{analysisResult}</ReactMarkdown>
-                    </div>          </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -368,6 +390,47 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
           </div>
         )}
       </div>
+
+      {/* Topic Detail Modal */}
+      {viewingTopic && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-in">
+            <div className="p-8 overflow-y-auto">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{viewingTopic.title}</h3>
+
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">摘要</h4>
+                  <p className="text-gray-700 leading-relaxed text-lg">{viewingTopic.overview}</p>
+                </div>
+
+                {viewingTopic.fullDetail && (
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">推荐理由</h4>
+                    <p className="text-gray-600 leading-relaxed">{viewingTopic.fullDetail}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={closeTopicDetail}
+                className="px-6 py-2 rounded-lg text-gray-600 font-medium hover:bg-gray-200 transition-colors"
+              >
+                关闭
+              </button>
+              <button
+                onClick={confirmTopicFromModal}
+                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-md transition-colors flex items-center gap-2"
+              >
+                <CheckCircle2 size={18} />
+                选择此题目
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };
