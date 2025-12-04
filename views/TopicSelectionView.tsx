@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { PaperTask, Topic } from '../types';
 import { Upload, Search, ArrowRight, Lightbulb, FileCheck, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
 import { topicService } from '../services/topicService';
@@ -328,10 +329,9 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
                     分析报告
                   </h3>
                   <div className="prose prose-slate max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                      {analysisResult}
-                    </div>
-                  </div>
+                    <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                      <ReactMarkdown>{analysisResult}</ReactMarkdown>
+                    </div>          </div>
                 </div>
               </div>
             ) : (
@@ -368,6 +368,6 @@ export const TopicSelectionView: React.FC<TopicSelectionViewProps> = ({ task, on
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
